@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tonify - Nokia Compoer Ringtone Player</title>
+  <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="max-w-screen-sm mx-auto pt-10 font-mono uppercase text-2xl" style="background-color: #5B784E">
+  <h1 class="font-bold mb-4">Tonify</h1>
+  <h2 class="mb-4">Nokia Composer Ringtone Player</h2>
+
+  <form>
+    <div class="mb-4">
+      <label for="ringtone" class="block mb-2">Ringtone</label>
+      <textarea id="ringtone" name="ringtone" rows="8" cols="30" class="border-2 border-black p-2" style="background-color: #5B784E"></textarea>
+    </div>
+
+    <div class="mb-4">
+      <a href="https://nokia.nigelcoldwell.co.uk/tunes.html" target="_blank" rel="external" class="underline">Find them here</a>
+    </div>
+    
+    <div class="mb-4">
+      <label for="tempo" class="block mb-2">Tempo</label>
+      <input type="number" id="tempo" name="tempo" value="100" class="border-2 border-black p-2" style="background-color: #5B784E">
+    </div>
+
+    <div class="mb-4">
+      <label for="octaveShift" class="block mb-2">Octave Shift</label>
+      <input type="number" id="octaveShift" name="octaveShift" value="4" class="border-2 border-black p-2" style="background-color: #5B784E">
+    </div>
+
+    <div class="mb-4">
+      <button type="button" id="convert-button" class="border-2 border-black bg-black p-2 text-xl font-bold uppercase" style="color: #5B784E">Play</button>
+    </div>
+  </form>
+
+  <midi-player id="player" style="display: none"></midi-player>
+
+  <script type="module">
+    import fs from 'fs';
+    import { parseRingtone } from './src/nokiaParser';
+    import { convertToMidi } from './src/midi';
+
+    document.getElementById('ringtone').value = `4g2 8#a2 16g2 16- 16g2
+8c3 8g2 8f2 4g2 8d3
+16g2 16- 16g2 8#d3 8d3
+8#a2 8g2 8d3 8g3 16g2
+16f2 16- 16f2 8d2 8a2
+2g2`;
+
+    const player = document.getElementById('player');
+    player.addEventListener('load', () => {
+      player.start();
+    });
+
+    document.getElementById('convert-button').addEventListener('click', async () => {
+      try {
+        const ringtone = document.getElementById('ringtone').value;
+        const tempo = parseInt(document.getElementById('tempo').value, 10);
+        const octaveShift = parseInt(document.getElementById('octaveShift').value, 10);
+
+        const notes = parseRingtone(ringtone);
+        const midi = convertToMidi(notes, tempo, octaveShift);
+
+        const midiBlob = new Blob([midi], { type: 'audio/midi' })
+        const url = URL.createObjectURL(midiBlob);
+        player.src = url;
+      } catch (err) {
+        console.error('Error converting ringtone to MIDI: ', err);
+      }
+    });
+  </script>
+</body>
+</html>
